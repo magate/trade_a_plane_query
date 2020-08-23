@@ -57,17 +57,27 @@ OIL_COST_PER_HOUR = args.oil_cost_per_hour  # $
 
 OUT_FILE = args.output_file
 
+MAKE = args.make
+
+MODEL_GROUP = args.model_group
+
+MODEL_TYPE = args.model_type
+
+DOWN_PAYMENT_PERCENT = args.down_payment_percent
+
+
+
 TIME_BETWEEN_REQUESTS = 90  # seconds
 
 
 BASE_URL = 'https://www.trade-a-plane.com/'
-SEARCH_URL = BASE_URL + f'search?s-type=aircraft&s-advanced=yes&sale_status=For+Sale&category_level1=Single+Engine+Piston&make={args.make}&model_group=BEECHCRAFT{args.model_group}&user_distance=1000000&s-custom_style=oneline&s-page_size=96'
+SEARCH_URL = BASE_URL + f'search?s-type=aircraft&s-advanced=yes&sale_status=For+Sale&category_level1=Single+Engine+Piston&make={MAKE}&model_group=BEECHCRAFT{MODEL_GROUP}&user_distance=1000000&s-custom_style=oneline&s-page_size=96'
 page = requests.get(SEARCH_URL)
 
 soup = BeautifulSoup(page.content, 'html.parser')
 search_results = soup.find_all('a', class_="log_listing_click")
 
-v35_list = [result for result in search_results if args.model_type in str(result)]
+v35_list = [result for result in search_results if MODEL_TYPE in str(result)]
 
 url_to_checkout = []
 hours_per_year = []
@@ -106,7 +116,7 @@ for i in range(0, len(v35_list), 3):
             engine_time = int(re.findall("\d+", engine_time.next_sibling.strip())[0])
             prop_time = int(re.findall("\d+", prop_time.next_sibling.strip())[0])
     
-            loan_after_downpayment = price * (1.0-args.down_payment_percent)
+            loan_after_downpayment = price * (1.0-DOWN_PAYMENT_PERCENT)
             loan = -np.pmt(LOAN_PERC/12, LOAN_LENGTH*12, loan_after_downpayment)
 
             total_fixed = loan + YEARLY_HANGAR + YEARLY_INSURANCE + YEARLY_MAINENANCE
