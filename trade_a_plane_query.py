@@ -145,40 +145,40 @@ page = requests.get(SEARCH_URL)
 soup = BeautifulSoup(page.content, 'html.parser')
 search_results = soup.find_all('a', class_="log_listing_click")
 
-v35_list = [result for result in search_results if MODEL_TYPE in str(result)]
+aircraft_list = [result for result in search_results if MODEL_TYPE in str(result)]
 
 url_to_checkout = []
 hours_per_year = []
 
-print(f'Approximate run time is {int(len(v35_list)/3*90/60)} minutes.\n')
+print(f'Approximate run time is {int(len(aircraft_list)/3*90/60)} minutes.\n')
 
-for i in range(0, len(v35_list), 3):
-    v35 = v35_list[i]
-    s = str(v35)
+for i in range(0, len(aircraft_list), 3):
+    aircraft = aircraft_list[i]
+    s = str(aircraft)
     start = s.find('href="') + len('href=""')
     end = s.find('type=aircraft"') + len('type=aircraft')
-    v35_url = s[start:end]
+    aircraft_url = s[start:end]
     
     time.sleep(TIME_BETWEEN_REQUESTS)
-    v35_page = requests.get(BASE_URL + v35_url)
-    v35_soup = BeautifulSoup(v35_page.content, 'html.parser')
+    aircraft_page = requests.get(BASE_URL + aircraft_url)
+    aircraft_soup = BeautifulSoup(aircraft_page.content, 'html.parser')
     
-    while '429 Too Many Requests' in str(v35_soup):
-        print(v35_soup)
+    while '429 Too Many Requests' in str(aircraft_soup):
+        print(aircraft_soup)
         sys.exit(0)
 
-    print(f'Request {i/3+1} of {int(len(v35_list)/3)} successful.')
+    print(f'Request {i/3+1} of {int(len(aircraft_list)/3)} successful.')
     
-    if 'GARMIN' or 'GNS' or 'G430' or 'G530' in str(v35_soup):
-        v35_soup.find('p', class_="price")
-        s = str(v35_soup)
+    if 'GARMIN' or 'GNS' or 'G430' or 'G530' in str(aircraft_soup):
+        aircraft_soup.find('p', class_="price")
+        s = str(aircraft_soup)
         start = s.find('> $') + len('> $')
         end = s.find(' <span itemprop="priceCurrency"')
         price = int(s[start:end].replace(',',''))
     
-        total_time = v35_soup.find("label", text='Total Time:')
-        engine_time = v35_soup.find("label", text='Engine 1 Time:')
-        prop_time = v35_soup.find("label", text='Prop 1 Time:')
+        total_time = aircraft_soup.find("label", text='Total Time:')
+        engine_time = aircraft_soup.find("label", text='Engine 1 Time:')
+        prop_time = aircraft_soup.find("label", text='Prop 1 Time:')
         if total_time and engine_time and prop_time:
             total_time = total_time.next_sibling.strip()
             engine_time = int(re.findall(r"\d+", engine_time.next_sibling.strip())[0])
@@ -199,7 +199,7 @@ for i in range(0, len(v35_list), 3):
             yearly_hours = int((YEARLY_TOTAL_TO_SPEND - total_fixed)/variable_hourly)
     
             if yearly_hours > MIN_HOURS:
-                url_to_checkout.append(v35_url)
+                url_to_checkout.append(aircraft_url)
                 hours_per_year.append(yearly_hours)
 
 if hours_per_year and url_to_checkout:
