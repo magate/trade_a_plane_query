@@ -106,7 +106,7 @@ for i in range(0, len(v35_list), 3):
         prop_time = int(re.findall("\d+", prop_time.next_sibling.strip())[0])
     
         loan_after_downpayment = price * (1.0-args.down_payment_percent)
-        loan = -np.pmt(LOAN_PEC/12, LOAN_LENGTH*12, loan_after_downpayment)
+        loan = -np.pmt(LOAN_PERC/12, LOAN_LENGTH*12, loan_after_downpayment)
 
         total_fixed = loan + YEARLY_HANGAR + YEARLY_INSURANCE + YEARLY_MAINENANCE
 
