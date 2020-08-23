@@ -138,7 +138,8 @@ TIME_BETWEEN_REQUESTS = 90  # seconds
 
 
 BASE_URL = 'https://www.trade-a-plane.com/'
-SEARCH_URL = BASE_URL + f'search?s-type=aircraft&s-advanced=yes&sale_status=For+Sale&category_level1=Single+Engine+Piston&make={MAKE}&model_group=BEECHCRAFT{MODEL_GROUP}&user_distance=1000000&s-custom_style=oneline&s-page_size=96'
+SEARCH_URL = ( BASE_URL 
+             + f'search?s-type=aircraft&s-advanced=yes&sale_status=For+Sale&category_level1=Single+Engine+Piston&make={MAKE}&model_group=BEECHCRAFT{MODEL_GROUP}&user_distance=1000000&s-custom_style=oneline&s-page_size=96'
 page = requests.get(SEARCH_URL)
 
 soup = BeautifulSoup(page.content, 'html.parser')
