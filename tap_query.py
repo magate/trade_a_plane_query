@@ -91,37 +91,38 @@ for i in range(0, len(v35_list), 3):
 
     print(f'Request {i/3+1} of {int(len(v35_list)/3)} successful.')
     
-    v35_soup.find('p', class_="price")
-    s = str(v35_soup)
-    start = s.find('> $') + len('> $')
-    end = s.find(' <span itemprop="priceCurrency"')
-    price = int(s[start:end].replace(',',''))
+    if 'GARMIN' or 'GNS' or 'G430' or 'G530' in str(v35_soup):
+        v35_soup.find('p', class_="price")
+        s = str(v35_soup)
+        start = s.find('> $') + len('> $')
+        end = s.find(' <span itemprop="priceCurrency"')
+        price = int(s[start:end].replace(',',''))
     
-    total_time = v35_soup.find("label", text='Total Time:')
-    engine_time = v35_soup.find("label", text='Engine 1 Time:')
-    prop_time = v35_soup.find("label", text='Prop 1 Time:')
-    if total_time and engine_time and prop_time:
-        total_time = total_time.next_sibling.strip()
-        engine_time = int(re.findall("\d+", engine_time.next_sibling.strip())[0])
-        prop_time = int(re.findall("\d+", prop_time.next_sibling.strip())[0])
+        total_time = v35_soup.find("label", text='Total Time:')
+        engine_time = v35_soup.find("label", text='Engine 1 Time:')
+        prop_time = v35_soup.find("label", text='Prop 1 Time:')
+        if total_time and engine_time and prop_time:
+            total_time = total_time.next_sibling.strip()
+            engine_time = int(re.findall("\d+", engine_time.next_sibling.strip())[0])
+            prop_time = int(re.findall("\d+", prop_time.next_sibling.strip())[0])
     
-        loan_after_downpayment = price * (1.0-args.down_payment_percent)
-        loan = -np.pmt(LOAN_PERC/12, LOAN_LENGTH*12, loan_after_downpayment)
+            loan_after_downpayment = price * (1.0-args.down_payment_percent)
+            loan = -np.pmt(LOAN_PERC/12, LOAN_LENGTH*12, loan_after_downpayment)
 
-        total_fixed = loan + YEARLY_HANGAR + YEARLY_INSURANCE + YEARLY_MAINENANCE
+            total_fixed = loan + YEARLY_HANGAR + YEARLY_INSURANCE + YEARLY_MAINENANCE
 
-        variable_hourly = (  GAS_PER_GALLON * GAS_PER_HOUR
-                       + OIL_COST_PER_HOUR
-                       + OIL_CHANGE_COST_PER_50_HOURS/50.0
-                       + ENGINE_OVERHAUL_COST/(ENGINE_OVERHAUL_TIME - engine_time)
-                       + PROP_OVERHAUL_COST/(PROP_OVERHAUL_TIME - prop_time)
-                      )
+            variable_hourly = (  GAS_PER_GALLON * GAS_PER_HOUR
+                               + OIL_COST_PER_HOUR
+                               + OIL_CHANGE_COST_PER_50_HOURS/50.0
+                               + ENGINE_OVERHAUL_COST/(ENGINE_OVERHAUL_TIME - engine_time)
+                               + PROP_OVERHAUL_COST/(PROP_OVERHAUL_TIME - prop_time)
+                              )
     
-        yearly_hours = int((YEARLY_TOTAL_TO_SPEND - total_fixed)/variable_hourly)
+            yearly_hours = int((YEARLY_TOTAL_TO_SPEND - total_fixed)/variable_hourly)
     
-        if yearly_hours > MIN_HOURS:
-            url_to_checkout.append(v35_url)
-            hours_per_year.append(low_yearly_hours)
+            if yearly_hours > MIN_HOURS:
+                url_to_checkout.append(v35_url)
+                hours_per_year.append(low_yearly_hours)
 
 if hours_per_year and url_to_checkout:
     hours_per_year, url_to_checkout = (list(t) for t in zip(*sorted(zip(hours_per_year, url_to_checkout), reverse=True)))
