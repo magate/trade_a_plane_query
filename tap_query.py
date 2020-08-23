@@ -122,7 +122,7 @@ for i in range(0, len(v35_list), 3):
     
             if yearly_hours > MIN_HOURS:
                 url_to_checkout.append(v35_url)
-                hours_per_year.append(low_yearly_hours)
+                hours_per_year.append(yearly_hours)
 
 if hours_per_year and url_to_checkout:
     hours_per_year, url_to_checkout = (list(t) for t in zip(*sorted(zip(hours_per_year, url_to_checkout), reverse=True)))
