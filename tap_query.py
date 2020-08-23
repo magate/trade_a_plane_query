@@ -113,3 +113,5 @@ if hours_per_year and url_to_checkout:
             writer.writerow([str(hours_per_year[i]), str(BASE_URL) + str(url_to_checkout[i])])   
 else:
     print(f'No results for ${YEARLY_TOTAL_TO_SPEND} yearly and minimum {MIN_HOURS} hours per year.')
+
+
