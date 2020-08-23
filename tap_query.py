@@ -127,7 +127,7 @@ for i in range(0, len(v35_list), 3):
 if hours_per_year and url_to_checkout:
     hours_per_year, url_to_checkout = (list(t) for t in zip(*sorted(zip(hours_per_year, url_to_checkout), reverse=True)))
                                    
-    with open(output_file, mode='w') as f:
+    with open(OUT_FILE, mode='w') as f:
         writer = csv.writer(f)
         for i in range(0, len(hours_per_year)):
             print(str(hours_per_year[i]) + ',' + str(BASE_URL) + str(url_to_checkout[i]))
