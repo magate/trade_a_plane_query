@@ -11,6 +11,21 @@ import sys
 import time
 
 parser = argparse.ArgumentParser()
+parser.add_argument( "-m"
+                   , "--make"
+                   , help="Specify aircraft make as all capital string."
+                   , type=str
+                   , required=True)
+parser.add_argument( "-mg"
+                   , "--model_group"
+                   , help="Specify aircraft model group, for example, '+35+BONANZA+SERIES'."
+                   , type=str
+                   , required=True)
+parser.add_argument( "-mt"
+                   , "--model_type"
+                   , help="Specify a model subtype, all capital string, for example V35 or V35A."
+                   , type=str
+                   , required=True) 
 parser.add_argument( "-dpp"
                    , "--down_payment_percent"
                    , default=0.15
@@ -56,28 +71,16 @@ parser.add_argument( "-lp"
                    , default=0.07
                    , help="Enter the loan percentage as a decimal."
                    , type=float)
-parser.add_argument( "-m"
-                   , "--make"
-                   , help="Specify aircraft make as all capital string."
-                   , type=str)
 parser.add_argument( "-maint"
                    , "--maintenance"
                    , default=3000
                    , help="Enter the yearly maintenance cost as an integer, no symbols or commas."
                    , type=int)
-parser.add_argument( "-mg"
-                   , "--model_group"
-                   , help="Specify aircraft model group, for example, '+35+BONANZA+SERIES'."
-                   , type=str)
 parser.add_argument( "-mh"
                    , "--min_hours"
                    , default=125
                    , help="Enter the minimum hours you want to fly per year as an integer."
                    , type=int)
-parser.add_argument( "-mt"
-                   , "--model_type"
-                   , help="Specify a model subtype, all capital string, for example V35 or V35A."
-                   , type=str) 
 parser.add_argument( "-o"
                    , "--output_file"
                    , default="out.csv"
