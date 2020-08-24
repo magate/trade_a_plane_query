@@ -114,24 +114,45 @@ parser.add_argument( "-ts"
 
 args=parser.parse_args()
 
+class Aircraft():
+    '''Class for aircraft information.'''
+    def __init__(self, make, model_group, model_type):
+        '''Init.'''
+        self.make = make
+        self.model_group = model_group
+        self.model_type = model_type
+        self.price = ''  # $
+        self.gph = ''  # gallons per hour
+        self.ocph = ''  # $ oil cost per hour
+        self.occ = ''  # $ oil change cost per 50 hours
+        self.etbo = ''  # engine time between overhauls
+        self.ptbo = ''  # prop time between overhauls
+        self.total_time = ''  # actual total time
+        self.engine_time = ''  # actual engine time
+        self.prop_time = ''  # actual prop time
+        self.eoc = ''  # $ engine overhaul cost
+        self.poc = ''  # $ prop overhaul cost
+
 # Constants
+aircraft_properties = Aircraft(args.make, args.model_group, args.model_type)
+aircraft_properties.eoc = args.engine_overhaul_cost  # $
+aircraft_properties.etbo = args.engine_time_between_overhauls  # hours
+aircraft_properties.gph = args.gallons_per_hour  # gallons
+aircraft_properties.make = args.make  # str
+aircraft_properties.model_group = args.model_group  # str
+aircraft_properties.model_type = args.model_type  # str
+aircraft_properties.occ = args.oil_change_cost  # $
+aircraft_properties.ocph = args.oil_cost_per_hour  # $
+aircraft_properties.poc = args.prop_overhaul_cost  # $
+aircraft_properties.ptbo = args.prop_time_between_overhauls  # hours
+
 DOWN_PAYMENT_PERCENT = args.down_payment_percent  # %
-ENGINE_OVERHAUL_COST = args.engine_overhaul_cost  # $
-ENGINE_OVERHAUL_TIME = args.engine_time_between_overhauls  # hours
 GAS_PER_GALLON = args.gas_cost  # $
-GALLONS_PER_HOUR = args.gallons_per_hour  # gallons
 LOAN_LENGTH = args.loan_length  # years
 LOAN_PERC = args.loan_percent  # %
-MAKE = args.make  # str
 MIN_HOURS = args.min_hours  # hours
-MODEL_GROUP = args.model_group  # str
-MODEL_TYPE = args.model_type  # str
 NUM_LINKS = 3  # Each table result has 3 links per aircraft. Remove duplication. TODO use unique.
-OIL_CHANGE_COST_PER_50_HOURS = args.oil_change_cost  # $
-OIL_COST_PER_HOUR = args.oil_cost_per_hour  # $
 OUT_FILE = args.output_file  # str
-PROP_OVERHAUL_COST = args.prop_overhaul_cost  # $
-PROP_OVERHAUL_TIME = args.prop_time_between_overhauls  # hours
 YEARLY_HANGAR = args.hangar * 12 # $
 YEARLY_INSURANCE = args.insurance  # $
 YEARLY_MAINENANCE = args.maintenance  # $
@@ -144,7 +165,7 @@ TIME_BETWEEN_REQUESTS = 90  # seconds
 # Trade-a-plane single line advanced search.
 BASE_URL = 'https://www.trade-a-plane.com/'
 SEARCH_URL = ( BASE_URL 
-    + f'search?s-type=aircraft&s-advanced=yes&sale_status=For+Sale&category_level1=Single+Engine+Piston&make={MAKE}&model_group=BEECHCRAFT{MODEL_GROUP}&user_distance=1000000&s-custom_style=oneline&s-page_size=96')
+    + f'search?s-type=aircraft&s-advanced=yes&sale_status=For+Sale&category_level1=Single+Engine+Piston&make={aircraft_properties.make}&model_group=BEECHCRAFT{aircraft_properties.model_group}&user_distance=1000000&s-custom_style=oneline&s-page_size=96')
 page = requests.get(SEARCH_URL)
 
 # Look for links in the results.
@@ -152,7 +173,7 @@ soup = BeautifulSoup(page.content, 'html.parser')
 search_results = soup.find_all('a', class_="log_listing_click")
 
 # Find specified model in the results.
-aircraft_list = [result for result in search_results if MODEL_TYPE in str(result)]
+aircraft_list = [result for result in search_results if aircraft_properties.model_type in str(result)]
 
 url_to_checkout = []
 hours_per_year = []
@@ -191,7 +212,7 @@ for i in range(0, len(aircraft_list), NUM_LINKS):
         s = str(aircraft_soup)
         start = s.find('> $') + len('> $')
         end = s.find(' <span itemprop="priceCurrency"')
-        price = int(s[start:end].replace(',',''))
+        aircraft_properties.price = int(s[start:end].replace(',',''))
         
         # Parse information.
         total_time = aircraft_soup.find("label", text='Total Time:')
@@ -199,12 +220,12 @@ for i in range(0, len(aircraft_list), NUM_LINKS):
         prop_time = aircraft_soup.find("label", text='Prop 1 Time:')
         if total_time and engine_time and prop_time:
             # Strip into a string.
-            total_time = total_time.next_sibling.strip()
-            engine_time = int(re.findall(r"\d+", engine_time.next_sibling.strip())[0])
-            prop_time = int(re.findall(r"\d+", prop_time.next_sibling.strip())[0])
+            aircraft_properties.total_time = total_time.next_sibling.strip()
+            aircraft_properties.engine_time = int(re.findall(r"\d+", engine_time.next_sibling.strip())[0])
+            aircraft_properties.prop_time = int(re.findall(r"\d+", prop_time.next_sibling.strip())[0])
             
             # Calculate loan based on listed price and down payment percentage.
-            loan_after_downpayment = price * (1.0-DOWN_PAYMENT_PERCENT)
+            loan_after_downpayment = aircraft_properties.price * (1.0-DOWN_PAYMENT_PERCENT)
 
             # Calculate loan payments.
             loan = -np.pmt(LOAN_PERC/12, LOAN_LENGTH*12, loan_after_downpayment)
@@ -213,11 +234,13 @@ for i in range(0, len(aircraft_list), NUM_LINKS):
             total_fixed = loan + YEARLY_HANGAR + YEARLY_INSURANCE + YEARLY_MAINENANCE
             
             # Total variable costs per hour.
-            variable_hourly = (  GAS_PER_GALLON * GALLONS_PER_HOUR
-                               + OIL_COST_PER_HOUR
-                               + OIL_CHANGE_COST_PER_50_HOURS/50.0
-                               + ENGINE_OVERHAUL_COST/(ENGINE_OVERHAUL_TIME - engine_time)
-                               + PROP_OVERHAUL_COST/(PROP_OVERHAUL_TIME - prop_time)
+            variable_hourly = (  GAS_PER_GALLON * aircraft_properties.gph
+                               + aircraft_properties.ocph
+                               + aircraft_properties.occ/50.0
+                               + aircraft_properties.eoc
+                                 / (aircraft_properties.etbo - aircraft_properties.engine_time)
+                               + aircraft_properties.poc
+                                 / (aircraft_properties.ptbo - aircraft_properties.prop_time)
                               )
             
             # Based on amount willing to spend per year, how many hours are remaining to fly.
@@ -232,7 +255,9 @@ for i in range(0, len(aircraft_list), NUM_LINKS):
 # Order by most hours able to fly.
 # List hours able to fly per year and link to the aircraft.
 if hours_per_year and url_to_checkout:
-    hours_per_year, url_to_checkout = (list(t) for t in zip(*sorted(zip(hours_per_year, url_to_checkout), reverse=True)))
+    hours_per_year, url_to_checkout = (
+        list(t) for t in zip(*sorted(zip(hours_per_year, url_to_checkout), reverse=True))
+                                      )
                                    
     with open(OUT_FILE, mode='w') as f:
         writer = csv.writer(f)
